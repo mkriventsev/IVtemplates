@@ -1,0 +1,397 @@
+~version: "2.1"
+
+#https://www.brasil247.com/pt/247/cultura/252211/Video-Music-Award-consagra-Beyonc%C3%A9-com-8-estatuetas.htm
+#?path: .*/colunistas/.*
+#?path: .*/blog/.*
+#?path: /pt/saude247/.*
+#?path: /pt/digiclub/.*
+!domain_not: es\.brasil247\.com
+
+?path: /.+
+!path_not: /author/.+
+!path_not: /pt/247/tv/
+!path_not: /user/.*
+
+title: //div[has-class("featured-box")]/h1
+title: //div[has-class("featured-box")]/h2
+title: //h2[has-class("title")]
+title: (//header)[1]/hgroup/..//a/text()#//h3/a#/text()
+
+body: //div[has-class("entry")]
+body: //section[has-class("entry")]
+body: //section[@id="content"]/div[has-class("article_content")]/article[has-class("news_item")]/div[has-class("content content_text")]
+
+@replace("/get_img?.*&ImageId", "/get_img?ImageId"): //img/@src
+
+@set_attr(src, "./ancestor::a[has-class(\"photoViewer\")]/@href"): //img
+#@set_attr(href, "./..//self::a/@href"): //a
+
+@if ("$body//p") {
+cover: //div[has-class("featured-box")]/img
+cover: //section[has-class("entry")]/article/figure/a/img
+cover: //section[has-class("entry")]/article/figure
+}
+$coversection: //section[@id="content"]/div[has-class("article_content")]/article[has-class("news_item")]/div[has-class("thumbnail content_text")]
+
+?not_exists: $coversection/p
+<figcaption>: $coversection/h6
+?true
+<figcaption>: $coversection/p
+<figure>: $coversection
+cover: $@
+
+@urldecode: //link[@rel="canonical"]/@href
+@debug: //link[@rel="canonical"]/@href
+@urldecode: //meta[@property="og:url"]/@content
+@debug: //meta[@property="og:url"]/@content
+@urldecode: //a[descendant::img]/@href
+@debug: //a[descendant::img]/@href
+#https://www.brasil247.com/pt/blog/91/383223/Sa%C3%BAde-de-Bolsonaro-s%C3%B3-piora-mas-vers%C3%A3o-oficial-diz-que-ele-est%C3%A1-%C3%B3timo.htm
+
+image_url: $cover/self::figure//img/@src
+image_url: $cover/@src
+image_url: //meta[@property="og:image"]/@content
+
+@datetime(-3,"pt_BR","d.MM.yyyy, HH:mm"): //h6[has-class("info")]
+published_date: $@
+
+@datetime(-3,"pt_BR","d 'de' MMMM 'de' y 'às' HH:mm"): //meta[@property="article:published_time"]/@content
+published_date: $@
+
+@datetime(-3,"pt_BR","d.MM.yyyy, HH:mm"): //h6[has-class("info")]
+published_date: $@
+
+# ?domain: es\.brasil247\.com
+# site_name: "Brasil 247"
+# channel: ""
+
+# author: //div[has-class("author-details")]
+# @datetime(0,"es_BR","d 'de' MMMM 'de' y"): //p[has-class("meta")]
+# published_date: $@
+# @datetime(-3,"es_BR","d 'de' MMMM 'de' y 'às' HH:mm"): //time
+# published_date: $@
+# ?true:
+
+@remove: //time
+@remove: //p[has-class("meta")]
+
+author: //div[has-class("author")]
+author: //div[has-class("user-profile-data")]/h5
+author: //div[has-class("author_info")]/a/text()
+
+@remove: //div[has-class("author_info clearfix")]
+@remove: //meta[@name="author"]#[@content="Tomasz Rondio" or @content="Brasil 247"]
+
+#author for degit/#https://www.brasil247.com/pt/digiclub/digiclub/362197/A%C3%A7%C3%B5es-do-Netflix-desabam-ap%C3%B3s-queda-em-novos-assinantes-no-2%C2%BA-tri.htm
+@remove: //p[has-class("Attribution_content") and string-length(text())<2]
+@replace("^Por ", ""): //p[has-class("Attribution_content")]
+@replace("^por ", ""): //p[has-class("Attribution_content")]
+@replace("Reportagem adicional de ", ""): //p[has-class("Attribution_content")]
+@replace("com reportagem adicional de ", ""): //p[has-class("Attribution_content")]
+@replace("reportagem adicional de ", ""): //p[has-class("Attribution_content")]
+@replace("Reportagem de ", ""): //p[has-class("Attribution_content")]
+#@replace("reportagem de ", ""): //p[has-class("Attribution_content")]
+@replace("^Reportagem", ""): //p[has-class("Attribution_content")]
+@replace("Edição de ", ""): //p[has-class("Attribution_content")]
+@replace("edição de ", ""): //p[has-class("Attribution_content")]
+@replace("texto de ", ""): //p[has-class("Attribution_content")]
+@replace("; ", ", "): //p[has-class("Attribution_content")]
+@replace(" e ", ", "): //p[has-class("Attribution_content")]
+@replace(",,", ","): //p[has-class("Attribution_content")]
+@replace(", em ", " em "): //p[has-class("Attribution_content")]
+@combine(", "): //p[has-class("Attribution_content")]
+author: $@
+@remove: $@
+
+author_url: //div[has-class("author-content")]/div/div/h5/a/@href
+author_url: //div[has-class("featured-blogger")]/figure/a/@href
+
+@replace("^\\s*$", " "): //text()
+site_name: "Brasil 247"
+#Official channel
+#https://www.brasil247.com/pt/247/midiatech/239466/Receba-em-primeira-m%C3%A3o-alertas-de-not%C3%ADcias-do-247-pelo-Telegram.htm
+channel: "@brasil247"
+
+#@wrap(<blockquote>): //blockquote[.//img]//text()
+#<div>: //blockquote[.//blockquote]
+#@remove: $@//br
+#@combine(<br>, <br>): //blockquote/next-sibling::blockquote
+
+
+$videopage: //script[contains(text(),"youtu.be")]
+@if ($videopage){
+  @match("youtu\\.be\/[\\w-]+"):  //script[contains(text(),"youtu.be")]
+  $videolink: $@/text()
+  @match("[\\w-]+$"): $videolink
+  $youtubevideoid: $@
+  <iframe>: //section/figure
+  @set_attr(src, "https://www.youtube.com/embed/", $youtubevideoid):  $@
+  @append_to($body): //section/iframe[starts-with(@src,"https://www.youtube.com/embed/")]
+}
+
+@remove: //div[has-class("featured-box")]/h2
+@remove: //div[has-class("featured-box")]/h1
+@remove: //div[has-class("featured-box")]/p[has-class("meta")]
+@remove: //div[has-class("featured-box")]/img
+@wrap_inner(<i>): //div[has-class("featured-box")]
+@prepend_to($body): $@
+
+
+@remove: //div[has-class("user-profile-data")]
+@remove: //header
+@remove: //time
+@remove: //div[has-class("blogShare")]
+@remove: //img[ends-with(@src,"bannercaixa.jpg")]
+
+
+<video>: //script[contains(@src,"content.jwplatform.com/player")]
+@replace("^https://content.jwplatform.com/players/", "https://content.jwplatform.com/videos/"): $@/@src
+@replace("-\\w*.js$", ".mp4"): $@
+
+
+
+$youtubecontant: //object[starts-with(@data,"http://www.youtube.com/v/")]
+@if( $youtubecontant ) {
+ <iframe>: $youtubecontant
+ <div>: //p[.//object[starts-with(@data,"http://www.youtube.com/v/")]]
+ @set_attr(type, "yt"): //iframe[starts-with(@data,"http://www.youtube.com/v/")]
+ $convyt: //iframe[@type="yt"]
+ @replace("http://www.youtube.com/v/","https://www.youtube.com/embed/"): //iframe/@data
+ @set_attr(src, @data): $convyt
+ @remove: //iframe/embed
+ @remove: //iframe/param
+ @set_attr(type, ""): //iframe[contains(@type,"yt")]
+  @debug
+}
+
+#twitter 1 old type support
+#@debug: //div[has-class("EmbeddedTweet")]
+#@if() {
+#@debug: //div[has-class="EmbeddedTweet-tweet"]
+
+
+<iframe>: //div[starts-with(@data-click-to-open-target,"https://twitter.com/")][.//div[has-class("EmbeddedTweet-tweet")]]
+@set_attr(src,./@data-click-to-open-target): $@
+#}
+
+#@debug: //blockquote[has-class("twitter-tweet")]
+$twi: //blockquote[has-class("twitter-tweet")][descendant::a[contains(@href,"/status/")]]
+@map (//blockquote[has-class("twitter-tweet")]){
+ $twit: $@
+ $twia: $twit/a[contains(@href,"/status/")]
+ @if($twia){
+ @wrap(<iframe>):  $twit
+ @set_attrs(tp, "twiiv", src, $twia/@href):$@
+ @remove: $twit
+ }
+ @if_not($twia){
+   @replace("twitter-tweet","tw-tw"): $twit/@class
+ }
+}
+
+
+# facebook video
+$fb_video: $body//div[has-class("fb_iframe_widget")][@data-href]
+@replace("^\/\\w+\/videos\/vb\\.\\d+\/",""): $fb_video/@data-href
+@set_attr(data-href, "https://www.facebook.com/facebook/videos/", @data-href): $fb_video
+@remove: $fb_video//iframe
+
+
+#@urldecode: //meta[@property="og:url"]/@content
+#@urldecode: //a[descendant::img]/@href
+
+@match("(?i).+(?<!\\.jpg|\\.jpeg|\\.png|\\.gif)$"): //a[descendant::img]/@href
+@set_attr(href, "./..//self::a/@href"): //a[not(@href = //link[@rel="canonical"]/@href) and not(@href = //meta[@property="og:url"]/@content)]//img
+@set_attr(href, "./ancestor::a/@href"): //a[not(@href = //link[@rel="canonical"]/@href) and not(@href = //meta[@property="og:url"]/@content)]//img
+
+@combine: //p[has-class("bjp_media_credit")]/next-sibling::p[has-class("bjp_media_credit")]
+<figure>: //div[has-class("entry-thumbnail")][.//img]
+<figcaption>: $@/next-sibling::p[has-class("bjp_media_credit")]
+@append_to("./prev-sibling::figure"): $@
+
+@if (//div[has-class("wp-caption")][descendant::img]){
+  @wrap(<figcaption>): //p[has-class("wp-caption-text")]
+#  <figcaption>: //p[has-class("wp-caption-text")]//em
+  <figure>: //div[has-class("wp-caption")]
+}
+
+<figcaption>: //em[ancestor::figure and not (ancestor::figcaption) and not (descendant::img)]
+<figcaption>: //div[has-class("cs_img")]/p/em[string-length(text())>1]
+<figcaption>: //div[has-class("cs_img_caption")]
+<figure>: //div[has-class("cs_img")]
+
+<div>: //a[.//img]
+# <div>: //p[.//img]
+#<div>: //figcaption[.//img]
+<div>: //strong[.//img]
+# <div>: //h1[.//iframe]
+# <div>: //h2[.//iframe]
+# <div>: //h3[.//iframe]
+# <div>: //h4[.//iframe]
+# <div>: //h5[.//iframe]
+# <div>: //b[.//img]
+# <div>: //u[.//img]
+# <div>: //ul[.//img]
+# <div>: //em[.//img]
+# <div>: //i[.//img]
+<div>: //p[.//iframe]
+<div>: //em[.//iframe]
+<div>: //strong[.//iframe]
+#<div>: //a[.//iframe]
+#<div>: //blockquote[.//iframe]
+# <div>: //b[.//iframe]
+# <div>: //h3[.//iframe]
+# <div>: //a[.//iframe]
+# <div>: //u[.//iframe]
+# <div>: //p[.//related]
+
+#<div>: //blockquote[.//img]
+#<div>: //table[.//img]
+#<div>: //p[.//table]
+#<div>: //strong[.//table]
+#<div>: //td[.//img[has-class("CToWUd")]]
+
+<div>: //ins[.//iframe]
+# <div>: //strong[.//iframe]
+
+#<div>: //blockquote/descendant::table
+#<div>: //blockquote[.//table]
+#@after_el("./../self::blockquote"): //table
+
+#<pic>: //blockquote/..//img
+#<pic>: //table/..//img
+
+#@debug: $body
+#@debug: //td[has-class("tr-caption")]
+#<div>: //td[has-class("tr-caption")]/parent::node()
+
+
+<figcaption>: //td[has-class("tr-caption")]
+<figure>: //table[has-class("tr-caption-container")]
+
+
+
+$mapt: //div[has-class("mod-foto-embed")]/div[descendant::img and following-sibling::em[1]]
+@map($mapt){
+  $div: $@
+  @before_el($div): $div//img[has-class("pinit-img")]
+  <figcaption>: $div/parent::node()/em
+  $caption: $@
+  $divparent: $div/parent::node()
+  @append_to($divparent): $caption
+  <figure>: $divparent
+}
+
+$gmailtableimg: //table[descendant::tr[descendant::img[has-class("CToWUd")]]]
+@combine: $gmailtableimg//tr
+@combine: $gmailtableimg//td
+<figure>: $@
+<figcaption>: $@//span[descendant::img[has-class("CToWUd")]]/following-sibling::span
+@split_parent: $gmailtableimg
+
+@wrap(<figure>): $body//img[not(ancestor::figure)]
+
+#@remove: //div[has-class("aside-box")]
+# relatedheader: //div[has-class("aside-box")]/h4[starts-with(text(),"Matérias")]
+# @if ($relatedheader){
+#   @if($body) {
+#     @append(<related>): $$
+#     @append_to(//related): $relatedheader
+#     @append_to(//related): //article/hgroup/h3/a[has-class("")]
+#   }
+# }
+
+@remove: //h6[has-class("info")]
+@remove: //div[has-class("user-profile-data")]
+@remove: //header
+@remove: //time
+@remove: //div[has-class("blogShare")]
+@remove: //img[ends-with(@src,"bannercaixa.jpg")]
+
+
+@remove: //p[has-class("meta")]
+@remove: //div[has-class("cupons-interna")]
+@remove: //*[has-class("box-youtube red")]
+@remove: //*[has-class("box-youtube")]
+@remove: //*[has-class("box-youtube-live")]
+
+@remove: //a[starts-with(@href,"https://goo.gl/mi45Ge")]
+@remove: //a[starts-with(@href,"https://goo.gl/mj56Q6")]
+@remove: //a[starts-with(@href,"https://goo.gl/X8aUkz")]
+@remove: //*[ends-with(@src,"banner-660x100.jpg")]
+@remove: //*[ends-with(@src,"democracia-970x250.jpg")]/parent::node()
+
+@remove: //*[has-class("mobile-hide")]
+@remove: //iframe[@title="3rd party ad content"]
+@remove: //*[has-class("adsbygoogle")]
+@remove: //div[contains(@id,"google_ads_iframe")]
+@remove: //div[has-class("mrf-truvid")]
+@remove: //div[@id="_mcePaste"]
+@remove: //*[@id="taboola-right-rail"]
+@remove: //*[has-class("taboola-below-article-thumbnails")]
+@remove: //*[@id="taboola-below-article-thumbnails"]
+@remove: //div[has-class("opinions other_bloggers")]
+@remove: //*[@id="aniBox"]
+@remove: //div[has-class("adsbygoogle")]
+@remove: //*[has-class("sm_sesion")]
+@remove: //*[@id="sm-widget-container"]
+@remove: //iframe[starts-with(@src,"https://widgets.weather.com")]
+@remove: //iframe[starts-with(@src,"https://disqus.com/")]
+@remove: //*[starts-with(@id,"br_video_player")]
+@remove: //*[has-class("tbl-feed-container")]
+@remove: //*[has-class("trc_related_container")]
+@remove: //*[has-class("trc_spotlight_widget")]
+@remove: //*[has-class("trc_elastic")]
+@remove: //*[has-class("trc_elastic_organic-thumbnails-feed")]
+@remove: //*[has-class("tbl-feed-card")]
+@remove: //div[has-class("aside-box")]
+@remove: //p[has-class("cupons-interna")]
+@remove: //div[has-class("sharedaddy")]
+@remove: //div[has-class("printfriendly")]
+@unsupported: //iframe[starts-with(@src,"//players.brightcove.net/")]
+@unsupported: //iframe[starts-with(@src,"https://content.jwplatform.com/players/")]
+@unsupported: //iframe[starts-with(@src,"http://graphics8.nytimes.com/bcvideo")]
+
+#@unsupported: //iframe[contains(@src,"embed.ted.com/")]
+@replace("https?:\/\/i\\d.wp.com/","https://"): //img/@src
+
+@unsupported: //input
+
+@remove: $body//script[contains(text(),"truvidplayer")]/parent::node()
+
+@remove: //a[contains(@href,"edit.php")]
+
+
+description: //meta[@name="description"]/@content
+
+@if("//meta[@name=\"description\"][string-length(@content)< 15]"){
+$bcopy: $body
+description!!: $bcopy//p[normalize-space()][text()]
+@debug
+}
+
+@after(<br>): //blockquote//p[not(self::br) and not(self::li) and not(self::a)]
+@after(<br>): //table//p[not(self::br) and not(self::li) and not(self::a)]
+
+#<p>: $body//div[./span]
+<p>: $body//div/span[not(@class or @id)][not(.//*)][text()]
+<p>: $body//div[not(@class or @id)][not(.//*)][text()]
+@debug: //span
+# <p>: //p/span
+# @split_parent: //p//p
+
+#<p>: $body//div/div[not(@class or @id)][not(.//*)][text()]
+
+
+#====================
+#=====LET ME DIE=====
+#Original code/idea by Misho @mushi_f
+#With modifications by Andrei Afanasiev
+$problems: $body
+@while( $problems ) {
+  $test: $body//*[self::blockquote or self::aside or self::video or self::audio or self::figure or (self::img and not(./ancestor::figure)) or self::iframe or self::slideshow or self::related or self::footer or self::div[has-class("fb-video")] or self::div[has-class("fb-post")] or self::table[not(ancestor::table) and not(descendant::table)]]
+
+  $problems: $test/self::*[ancestor::figure or ancestor::anchor or ancestor::blockquote[not(has-class("instagram-media"))] or ancestor::aside or ancestor::footer or ancestor::figcaption or ancestor::strong or ancestor::b or ancestor::em or ancestor::i or ancestor::ins or ancestor::u or ancestor::del or ancestor::s or ancestor::strike or ancestor::code or ancestor::kbd or ancestor::samp or ancestor::tt or ancestor::mark or ancestor::sup or ancestor::pic or ancestor::sub or ancestor::a or ancestor::reference or ancestor::h1 or ancestor::h2 or ancestor::h3 or ancestor::h4 or ancestor::h5 or ancestor::h6 or ancestor::p or ancestor::pre or ancestor::hr or ancestor::img or ancestor::br]
+@split_parent:$problems
+}
+#@debug: //figcaption

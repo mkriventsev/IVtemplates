@@ -1,0 +1,271 @@
+~version: "2.1"
+
+?path: /astronomy-travel/.*
+?path: /astronomy-terms/.*
+body: //*[has-class("entry-content")][ancestor::*[has-class("single-post") or has-class("single-attachment") or has-class("attachment") or has-class("page")]]
+
+@debug: //article//*[(has-class("date") and (contains(., "2000") or  contains(., "2001") or contains(., "2002") or  contains(., "2003") or contains(., "2004") or  contains(., "2005") or contains(., "2006") or  contains(., "2007") or contains(., "2008") or  contains(., "2009") or contains(., "2010") or  contains(., "2011") or contains(.,  "2012") or  contains(., "2013") or contains(., "2014") or contains(., "2015")))]
+
+?path: /.+
+!path_not: /.*/page/.*
+!path_not: /subscribe/.*
+!path_not: /tag/.*
+!path_not: /login/.*
+!path_not: /organizer/.*
+!path_not: /category/.*
+!path_not: /help/.*
+!path_not: /login/.*
+!path_not: /lostpassword/.*
+!path_not: /newsletter/.*
+!path_not: /register/.*
+!path_not: /astronomy-pictures/
+!path_not: /about-us/.*
+!path_not: /author/.*
+!path_not: /about/.*
+!path_not: /advertise/.*
+!path_not: /astronomy-travel/
+#!path_not: /[\\-w]*/
+
+title: //*[has-class("entry-title")]
+
+body: //*[has-class("entry-content")][ancestor::*[has-class("single-post") or has-class("single-attachment2") or has-class("attachment1")]]
+
+
+@if(//body[has-class("category")]){
+ body!!: null
+}
+
+site_name://meta[@property="og:site_name"]/@content
+
+published_date: //meta[@property="article:published_time"]/@content
+@json_to_xml: //*[has-class("yoast-schema-graph yoast-schema-graph--main")]
+@datetime: $@//datePublished
+published_date: $@
+
+published_date: //time[has-class("entry-date")]/@datetime
+
+@debug: $published_date
+author: //*[has-class("author vcard")]
+author_url: //*[has-class("author vcard")]//a[has-class("url")]/@href
+@replace("^.*$",""): //meta[@property="article:author"]/@content
+##CHECK ON
+#@replace("\\s+and\\s+",", "): $author
+##CHECK OFF
+#====
+#gallery pages
+
+
+
+<figure>: //div[has-class("attachment")]
+<figcaption>: //div[has-class("entry-caption")]
+<figcaption>: //div[has-class("entry-caption")]
+<cite>: //figcaption//em
+<cite>: //figcaption//i
+
+#=====
+# <figure>: //div[contains(@id,"attachment")]
+# <figcaption>: //*[contains(@id,"caption-attachment")]
+# <cite>: //figure//em
+# <cite>: //figure//i
+
+<figure>: //div[has-class("photo-restrict")]
+<figure>: //div[has-class("wp-caption")]
+<figcaption>: //*[has-class("wp-caption-text")]
+@debug: //iframe[next-sibling::figcaption]
+# #CHECK ON
+# <cite>: //figcaption//em
+# <cite>: //figcaption//i
+# #CHECK OFF
+
+# #CHECK ON
+# @wrap(<cite>): $@
+# #CHECK OFF
+
+# #CHECK ON removed converting to cite
+# @wrap(<p>): $@
+# #CHECK OFF
+
+@append_to("./preceding-sibling::figcaption"): $@/parent::node()
+#@append_to("./prev-sibling::figcaption"): $@/parent::node()
+
+#=====slideshow
+
+
+<figcaption>://*[has-class("slideshow_description_box")][not(ancestor::*[has-class("slideshow_container_slideshow-jquery-image-gallery-custom-styles_3")])]
+<b>://*[has-class("slideshow_title")]
+<figure>: //*[has-class("slideshow_view")]
+<slideshow>: //*[has-class("slideshow_content")]
+#class="slideshow_title
+#========
+
+#https://www.skyandtelescope.com/astronomy-news/black-holes/scientists-unveil-first-black-hole-image/
+#https://www.skyandtelescope.com/observing/this-weeks-sky-at-a-glance-july-20-28/
+
+@replace("\\s*$",""): //a[descendant::img]/@href
+
+#CHECK ON
+#@debug: //a[descendant::img]/@href
+@replace("(?<=\\.JPEG|\\.JPG|\\.BMP|\\.PNG|\\.GIF).*","",i): //a[descendant::img]/@href
+#@replace("(?<=\\.JPEG|\\.JPG|\\.BMP|\\.PNG|\\.GIF)&w=.*","",i): //a[descendant::img]/@href
+#@debug: //a[descendant::img]/@href
+#@replace()
+#CHECK OFF
+
+
+@match("(?i).+(?<!\\.jpg|\\.jpeg|\\.bmp|\\.png|\\.gif)$"): //a[descendant::img]/@href
+
+@set_attr(href, "./..//self::a/@href"): //a[not(@href = //link[@rel="canonical"]/@href) and not(@href = //meta[@property="og:url"]/@content)]//img
+@set_attr(href, "./ancestor::a/@href"): //a[not(@href = //link[@rel="canonical"]/@href) and not(@href = //meta[@property="og:url"]/@content)]//img
+
+#====on click
+@match("(?<=window.open\\(').*?(?=')"): $body//a[@href="#" or @href="" or not(@href)]/@onclick
+@set_attr(href, ./@onclick): $body//a[@href="#" or @href="" or not(@href)]
+#====
+#@split_parent: //figure[descendant::img[ends-with(@src,".gif")]]//a[.//img]//img
+#@debug: //a[@tp="giflink"]
+
+
+$gifs_notflags: //figure[descendant::img[ends-with(@src,".gif")]]
+@map($gifs_notflags){
+current: $@
+@html_to_dom: $current//img/@href
+<a>:
+@set_attr(href,$current//img/@href)
+@prepend_to($current): $$
+@wrap(<figcaption>): $@
+@after_el("./next-sibling::node()"):$@
+@combine(<br>): //figcaption/next-sibling::figcaption
+
+}
+
+<pic>: //img[@width<120 and @height<120]
+@wrap(<aside>): //pic[not(ancestor::table or ul)]
+<pic>: $body//table//img[not(ancestor::figure)]
+
+
+@while( //figure[ancestor::table]) {
+@split_parent: //figure[ancestor::table]
+}
+@while(//table[ancestor::ul]) {
+@split_parent: //table[ancestor::p or ancestor::ul]
+}
+
+@remove: //table[string-length(normalize-space(.))<2]#
+
+
+@debug: //figure[.//pic]
+<div>:
+
+@debug: $gifs_notflags
+
+#@debug: //meta[@property="og:image"]
+#image_url: $body//img[1]/@src
+image_url: //meta[@property="og:image"]/@content
+
+#CHECK added hr
+@replace("^______________________$", "nHkiuhnfujrf89"):  //p[not(./*)]
+@debug: $@
+<hr>:
+#CHECK commented replace
+#@replace("^\\s*$", " "): $body//*[not(self::a and self::a[./span] and self::p[./br])]/text()
+
+##===brs in blockquotes===
+@after(<br>): //blockquote//p#[not(self::br) and not(self::li) and not(self::a)]
+
+@debug: $body//*[contains(@style,"xx-small")]
+<i>:
+
+
+@remove: //p[next-sibling::*[has-class("et_form_wrapper")]]
+@remove: //p[prev-sibling::*[has-class("et_form_wrapper")]]
+# @remove: //*[./form[@action="/wp-content/plugins/fw-exacttarget-client/subscribe-form.php"]]/next-sibling::node()
+
+$form: //div[has-class("et_form_wrapper")]
+@if ($form){
+@append("del_start"): ($form/preceding::hr)[1]
+$hr_start
+@append("del_end"): ($form/following::hr)[1]
+$hr_end
+#<div>: //p[count(.//br)>1]
+@wrap(<span>): $body//text()
+<p>: $body//br/next-sibling::br
+@remove: //*[following::div[has-class("et_form_wrapper")]][preceding::hr[span[text()="del_start"]]]
+@remove: //*[preceding::div[has-class("et_form_wrapper")]][following::hr[span[text()="del_end"]]]
+
+@remove: $form
+@remove: $hr_start
+@remove: $hr_end
+}
+
+
+@match(".*/embed/[\\w-]{11}"): //iframe[contains(@src,"youtube.com")]/@src
+@match(".*/video/\\d+"): //iframe[contains(@src,"vimeo.com")]/@src
+@debug: //iframe[contains(@src,"wikimedia.org/")]/@src
+
+
+
+@debug
+#@debug: $body//*[pre::form[@action="/wp-content/plugins/fw-exacttarget-client/subscribe-form.php"]]/next-sibling::node()#following-sibling::node()[next-sibling::*[not(self::hr)]]
+
+# @remove: //p[next-sibling::*[has-class("et_form_wrapper")]]/prev-sibling::node()
+# @remove: //*[./form[@action="/wp-content/plugins/fw-exacttarget-client/subscribe-form.php"]]/next-sibling::node()
+# @remove: //p[next-sibling::*[has-class("et_form_wrapper")]]
+# @remove: //form[@action="/wp-content/plugins/fw-exacttarget-client/subscribe-form.php"]
+# @remove: //*[has-class("et_form_wrapper")]
+# @remove: //*[has-class("et-form")]
+
+@remove: //*[has-class("entry-meta")]
+@remove: //*[has-class("tag-meta")]
+#======
+
+@remove: //*[has-class("at-above-post")]
+#@remove: //*[has-class("at-below-post")]/following-sibling::node()
+@remove: //*[has-class("at-below-post")]
+@remove: //*[has-class("addthis_tool")]
+@remove: //*[has-class("gallery-link")]
+@remove: //*[has-class("sharethis")]
+@remove: //*[has-class("slideshow_controlPanel")]
+@remove: //*[has-class("slideshow_togglePlay")]
+@remove: //*[has-class("slideshow_button")]
+@remove: //*[has-class("slideshow_previous")]
+@remove: //*[has-class("slideshow_next")]
+@remove: //*[has-class("slideshow_pagination")]
+@remove: //*[has-class("slideshow_pagination_center")]
+@remove: //*[has-class("comments-area")]
+@remove: //*[@id="comments"]
+@remove: //*[@role="contentinfo"]
+@remove: //*[@id="sidebar"]
+@remove: //*[@id="secondary"]
+@remove: //*[@id="sponsored-links"]
+@remove: //*[@id="ob_holder"]
+@remove: //*[has-class("OUTBRAIN")]
+@remove: //*[has-class("ob_holder")]
+@remove: //*[has-class("google-ads")]
+@remove: //*[has-class("featured-ads")]
+@remove: //*[has-class("sponsored-ads")]
+@remove: //iframe[contains(@src,"googletagmanager.com")]
+#======
+@unsupported: //div[@class="apester-media"]
+@unsupported: //div[has-class("playbuzz")]
+@unsupported: //div[has-class("pb_feed")]
+@unsupported: //iframe[@title="Apester - Interactive content"]
+@unsupported: //div[has-class("lb24")]
+@unsupported: //div[@id="uppod_streem"]
+@unsupported: //div[starts-with(@class,"wtf-broadcast-")]
+@unsupported: //input
+<div>: //script[contains(@src,"playbuzz.com")]
+@unsupported: $@
+<div>: //script[contains(@src,"v/embed.js")][contains(@src,"video.foxnews.com")]
+@unsupported: $@
+<div>: //script[contains(@src,"player.ooyala.com")]
+@unsupported: $@
+
+#========
+$problems: $body
+@while( $problems ) {
+  $test: $body//*[self::blockquote or self::aside or self::video or self::audio or self::figure or (self::img and not(./ancestor::figure)) or self::iframe[not(ancestor::figure)] or self::slideshow or self::related or self::footer or self::div[has-class("fb-video")] or self::div[has-class("fb-post")] or self::table[not(ancestor::table) and not(descendant::table)]]
+#[not(next-sibling::figcaption)]
+  $problems: $test/self::*[ancestor::figure or ancestor::anchor or ancestor::blockquote[not(has-class("instagram-media"))] or ancestor::aside or ancestor::footer or ancestor::figcaption or ancestor::strong or ancestor::b or ancestor::em or ancestor::i or ancestor::ins or ancestor::u or ancestor::del or ancestor::s or ancestor::strike or ancestor::code or ancestor::kbd or ancestor::samp or ancestor::tt or ancestor::mark or ancestor::sup or ancestor::pic or ancestor::sub or ancestor::a or ancestor::reference or ancestor::h1 or ancestor::h2 or ancestor::h3 or ancestor::h4 or ancestor::h5 or ancestor::h6 or ancestor::p or ancestor::pre or ancestor::hr or ancestor::img or ancestor::br]
+@split_parent:$problems
+}
+

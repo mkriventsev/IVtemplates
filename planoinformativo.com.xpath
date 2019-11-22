@@ -1,0 +1,367 @@
+~version: "2.1"
+#картинка
+#planoinformativo.com/la-voz-de.php?id=634713
+#planoinformativo.com/la-voz-de-colaborador.php?id=422632
+#planoinformativo.com/listado-voz-de.php?idnota=634713
+#planoinformativo.com/noticiero_anteriores.php?id=462585
+
+#http://planoinformativo.com/atletico/nota.php?id=186816
+#http://planoinformativo.com/planodeportivo/191479/atletico-se-queda-sin-filete-san-luis-y-dorados-empatan-a-dos
+?path: /atletico/nota.php.*
+?path: /planodeportivo/.*
+body: //div[has-class("contenido")]
+
+
+?path: /atletico/nota.php.*
+site_name:"Atlético de San Luis"
+#site_name:"Atletico San Luis"
+?path: /planodeportivo/.*
+site_name:"planodeportivo.com"
+
+?path: /la-voz-de-colaborador.*
+?path: /la-voz-de.php.*
+?path: /listado-voz-de.php.*
+site_name:"La voz de…"
+
+?path: /fm.*
+site_name:"RADIO planoinformativo.FM"
+
+
+?path: /noticiero_anteriores.php.*
+site_name: "Planoinformativo.com"
+
+?path: /.+
+
+!path_not: /la-voz-de-colaborador.php
+!path_not: /la-voz\-de\-colaborador.php\?((?!((.*idnota=\d+.*id=\d+.*|.*id=\d+.*idnota=\d+.*))).)*$
+
+!path_not: /listado.php.+
+!path_not: /.*listado.php.*
+!path_not: /planotv.php
+!path_not: /.*pagina=.*
+!path_not: /atletico/
+!path_not: /atletico/index.php
+
+body: //div[@id="contenidos"]
+body: //div[has-class("contenidofm")]//parent::node()
+body: //div[has-class("content")]
+body: //div[@id="videou"]
+body://*[@id="panel_738"]
+
+title: //div[has-class("titulointerior")]//h1
+title: //h1
+title: //*[has-class("fanton c15")]
+title: //h2
+title: //*[has-class("titulo-principal-voz")]
+title: //div[@id="titulo_ante"]//*[has-class("fa18ne")]
+title: //*[has-class("fo30006")]
+subtitle: //*[has-class("fm134d4d4d")]
+site_name:"Plano Informativo"
+
+<slideshow>: //div[has-class("lazy slider")]
+@set_attr(tp,"cover_slideshow"): $@
+<figure>: //a[@data-fancybox="gallery"]/parent::node()
+
+@prepend_to($body): //slideshow[@tp="cover_slideshow"]
+
+@replace("\\s",""): //*[contains(@src,"youtube.com/embed/")]/@src
+@remove: //iframe[contains(@src,"youtube.com/embed/?rel=0&controls=0&showinfo=0")]
+@remove: //iframe[@src="http://www.youtube.com/embed/"]
+@remove: //iframe[@src="http://www.youtube.com/"]
+
+@remove: //img[@src=""]
+@remove: //img[not(@src)]
+@remove: //iframe[@src=""]
+@remove: //iframe[not(@src)]
+
+@debug: $body//img
+@if_not(//div[@id="notatitulo"]//slideshow) {
+ cover: //div[@id="notatitulo"]//img  
+} 
+
+@set_attr(tp,"lead_par"): //*[has-class("fm134d4d4d")]
+### lead <p>
+@wrap_inner(<strong>): //div[has-class("titulointerior")]//p
+@set_attr(tp,"lead_par"): $@
+# @prepend_to($body): //strong[@tp="lead_par"]
+subtitle: //strong[@tp="lead_par"]
+subtitle: //*[has-class("fm134d4d4d")]
+
+@if("$title[string-length(text())< 1]"){
+ @if_not( $subtitle ) {
+  title!!: " "
+ }
+ @if( $subtitle ) {
+   title!!: $subtitle
+   subtitle!!: null 
+ }
+}
+
+
+#====author
+
+@replace("[-/\\s]*?(Plal?no)\\s*(Informar?tivo|Deportivo)\\s*",""): //*[has-class("izquierda") or has-class("fa12000")]
+
+@replace("[-/\\s]*?Foto.*?\\|","|")://div[has-class("izquierda")]
+@replace("[-/\\s]*?Foto.*?$","")://*[has-class("fa12000")]
+
+@replace("/\\s+?.*?\\|","|")://div[has-class("izquierda")]
+@replace("\\|{2,}","|"): //div[has-class("izquierda")]
+
+#====date
+@clone: //div[has-class("izquierda")]
+@set_attr(class, "izquierda_date")
+
+@match("\\d{1,2}\\s*(\/\\d{1,2}\/|\\w+)\\s*\\d{4}\\s*\\|\\s*\\d{1,2}:\\d{2}")://div[has-class("izquierda_date")]
+@datetime(-6, "es-ES", "dd/MM/yyyy '|' HH:mm"): //div[has-class("izquierda_date")]
+published_date: $@
+@remove: //div[has-class("izquierda_date")]
+#=====date
+
+@datetime(0, "es-ES", "dd MMM yyyy"): //*[has-class("fa12gris")]
+published_date: $@
+@remove: //*[has-class("fa12gris")]
+#=====date
+@datetime(-6, "es-ES", "dd/MM/yyyy '|' HH:mm '|'"): //div[has-class("informacion")]/h4/text()
+published_date: $@
+#=======
+
+@replace("\\d{1,2}\\s*(/\\d{1,2}/|\\w+)\\s*\\d{4}\\s*\\|\\s*\\d{1,2}:\\d{2}", ""): //div[has-class("izquierda")]
+#@replace("\\|+", ""): //div[has-class("izquierda")]
+@replace("\\d{1,2}\\s*(/\\d{1,2}/|\\w+)\\s*\\d{4}\\s*\\|\\s*\\d{1,2}:\\d{1,2}\\s*\\|\\s*", ""): //div[has-class("informacion")]/h4
+
+author: //div[has-class("izquierda")]
+author: //*[has-class("fa12000")]
+author: //div[has-class("informacion")]/h4
+author: //*[has-class("autor-principal-voz")]
+@remove: //*[has-class("autor-principal-voz")]
+@remove: //div[has-class("informacion")]/h4
+@remove: //*[has-class("fa12000")]
+
+# y means and
+@replace("\\|+", ""): $author
+@replace("\\s+y\\s+",", "): $author
+#http://planoinformativo.com/listado-voz-de.php?id=&idnota=412143
+@replace("Pdte.",""): $author
+@replace("(?!(?<=\\s\\w))\\.\\s*$",""): $author
+@debug: $author
+
+
+
+<p>: $body//div[@style="text-align: justify;"]
+@wrap(<p>): $body//div[./span]
+
+#http://planoinformativo.com/638812/estos-son-los-5-restaurantes-bajo-el-agua-que-tienes-que-conocer-
+@style_to_attrs(font-weight, font-weight, font-style, font-style): //*[self::span or self::p]
+@wrap_inner(<i>): //*[@font-weight="italic"]
+@wrap_inner(<b>): //*[contains(@font-weight,"bold") or @font-weight > 599]
+
+# @style_to_attrs(width, width, height, height): //img
+# @debug: //img[@height>2350]
+# @set_attr(href,./@src)://img[@height>2350]
+
+@remove: //title[text()="En la voz de"]
+
+@set_attr(src,./@href): //*[./*[@id="titulo_ante"]]/next-sibling::node()/div/a
+<iframe>
+@inline:$@
+@set_attr(tp,"noti"): $@
+@combine: //*[@tp="noti"]
+@remove: //*[@id="titulo_ante"]/following-sibling::node()
+@append_to($body): //*[@tp="noti"]//div[@id="videou"]#/iframe
+@replace("/ $",""): //*[has-class("fa14")]
+@remove: //*[@tp="noti"]
+
+@remove: //div[@id="videou"]/p[./*[@id="titulo_ante"]]/next-sibling::node()
+
+@inline: //iframe[contains(@src,"planoinformativo.com/planodeportivo/galeria_interior.php")]
+@set_attr(tp,"gallery_inline"): $@
+@remove: //*[@tp="gallery_inline"]//title
+@remove: //*[@tp="gallery_inline"]//*[has-class("control")]
+<div>: //*[@tp="gallery_inline"]//ul#[./il]
+
+@if($body//p) {
+<slideshow>: //div[has-class("gallery")]
+<figure>: //slideshow//li
+ cover: //*[has-class("izquierda")]/parent::node()/next-sibling::img
+}
+@remove: //div[has-class("izquierda")]
+
+# <figcaption>: $body//div[./a[./img]]/a/following-sibling::div[./a[has-class("fa14negb")]]
+# @wrap(<figure>): $body//div[./a[./img]][./figcaption/a[has-class("fa14negb")]]
+##@debug: //figure
+
+### FM
+@inline: //iframe[contains(@src,"planoinformativo.com/demo-01-bm2.php?audio=")]
+@match("(?<=mp3:\")htt.*?.mp3"): $@
+@set_attr(src,./text()): $@
+<audio>:
+
+# @append_to($body): //iframe[contains(@src,"planoinformativo.com/demo-01-bm2.php?audio=")]
+# @replace("planoinformativo.com/demo-01-bm2.php\\?audio=","periodicosanluis.com/audios/"): //iframe[contains(@src,"planoinformativo.com/demo-01-bm2.php?audio=")]/@src
+# <audio>: //iframe[contains(@src,"periodicosanluis.com/audios/")]
+# ### ! FM
+
+@replace("^\\s*$", " "): $body//*[not(self::a and self::a[./span] and self::p[./br])]/text()
+
+@remove: //*[has-class("infinite-carousel")]
+
+@replace("\\s*$",""): //a[descendant::img]/@href
+
+@match("(?i).+(?<!\\.jpg|\\.jpeg|\\.png|\\.gif)$"): //a[descendant::img]/@href
+@set_attr(href, "./..//self::a/@href"): //a[not(@href = //link[@rel="canonical"]/@href) and not(@href = //meta[@property="og:url"]/@content)]//img
+@set_attr(href, "./ancestor::a/@href"): //a[not(@href = //link[@rel="canonical"]/@href) and not(@href = //meta[@property="og:url"]/@content)]//img
+
+#http://planoinformativo.com/fm/651845/un-nuevo-libro-revela-la-envidia-entre-kurt-cobain-y-dave-grohl
+<video>: //script[contains(@src,"content.jwplatform.com/player")]
+@replace("^https?://content.jwplatform.com/players/", "https://content.jwplatform.com/videos/"): //video[contains(@src,"content.jwplatform.com/player")]/@src
+@replace("-\\w*.js$", ".mp4"): $@
+
+<video>: //iframe[contains(@src,"content.jwplatform.com/player")]
+@replace("^https?://content.jwplatform.com/players/", "https://content.jwplatform.com/videos/"): //video[contains(@src,"content.jwplatform.com/player")]/@src
+@replace("-\\w*.html$", ".mp4"): $@
+
+#=twitter fix
+@match("https://twitter.com/\\w+/status/\\d+"): //a[contains(@href,"/status/")]/@href
+#=======
+
+<pic>: //img[ancestor::table]
+
+@replace("/statuses/","/status/"): //script[contains(@src,"platform.twitter.com/widgets.js")]/next-sibling::blockquote[has-class("twitter-tweet")]//a/@href
+
+@replace("twitter-tweet","tw-tw"): //blockquote[has-class("twitter-tweet")][not(descendant::a[contains(@href,"/status/")])]/@class
+
+@replace("\\.jpg:$",".jpg"): //img/@src
+
+# @set_attr(text,"VER VIDEOS DE ESTE COLABORADOR"): //img[@src="imagenes/ver-colaboraciones.jpg"]
+# @html_to_dom: //img[@src="imagenes/ver-colaboraciones.jpg"]/@text
+# @after_el(//img[@src="imagenes/ver-colaboraciones.jpg"]): $@
+
+@remove: //img[@src="imagenes/ver-colaboraciones.jpg"]
+
+##===brs in blockquotes===
+@after(<br>): //p#[not(self::br) and not(self::li) and not(self::a)]
+#========
+@remove: //*[has-class("titulo-principal-voz")]
+#=======
+@remove: //*[@class="fa12ff3100"]
+#=======
+
+#http://planoinformativo.com/538881/congreso-tuna-tech-
+@remove: //*[@src="file:///C:/Users/PC7/AppData/Local/Temp/msohtmlclip1/01/clip_image001.gif"]/ancestor::table
+#http://planoinformativo.com/537627/recetas-de-ciencia-para-hacer-en-el-verano-
+@remove: //*[@src="file:///C:/Users/PC7/AppData/Local/Temp/msohtmlclip1/01/clip_image002.gif"]
+
+#http://planoinformativo.com/652252/cardi-b-drake-y-post-malone-lideran-nominaciones-a-los-billboard-2019-espectaculos
+@remove: //p[./b[text()=" Te puede interesar"]]/following-sibling::node()
+@remove: //p[./b[text()=" Te puede interesar"]]
+@remove: //p[@style="left:20px;padding-right: 13px;font-weight: 600;"][./b[text()=" Te puede interesar"]]/following-sibling::node()
+@remove: //p[@style="left:20px;padding-right: 13px;font-weight: 600;"][./b[text()=" Te puede interesar"]]
+@remove: //*[@id="publicidad224"]/following-sibling::node()
+@remove: //*[@id="publicidad224"]
+@remove: //*[@id="publicidad"]
+@remove: //*[@class="banner1000"]
+@remove: //*[@id="sidebarright"]
+@remove: //*[@class="sidelateral"]
+@remove: //*[@class="footer2013"]
+
+#http://planoinformativo.com/599759/que-pasa-en-tu-cuerpo-cuando-te-comes-el-chicleg-
+@remove: //img[contains(@src,"ckfinder.html")]
+@remove: //*[has-class("mobile-hide")]
+@remove: //iframe[@title="3rd party ad content"]
+@remove: //*[has-class("adsbygoogle")]
+@remove: //div[contains(@id,"google_ads_iframe")]
+@remove: //div[@data-google-query-id] 
+@remove: //iframe[@data-google-container-id]
+@remove: //div[has-class("adsbygoogle")]
+@remove: //*[@id="sm-widget-container"]
+@remove: //iframe[starts-with(@src,"https://widgets.weather.com")]
+@remove: //iframe[starts-with(@src,"https://disqus.com/")]
+
+@unsupported: //div[@class="apester-media"]
+@unsupported: //div[@class="playbuzz"]
+@unsupported: //iframe[@title="Apester - Interactive content"]
+@unsupported: //input
+
+@remove: //img[contains(@src,"planoinformativo.com/banners/image002.png")]
+@remove: //img[contains(@src,"planoinformativo.com/imagenes/barra-multimedia.png")]
+@remove: //a[@href="https://goo.gl/jF9Xqr"]
+@remove: //div[has-class("addthis_inline_share_toolbox_7epc")]
+@remove: //div[has-class("addthis_toolbox")]
+@remove: //div[has-class("addthis_default_style")]
+@remove: //*[has-class("elemento_multimedia")]
+@remove: //*[has-class("informacion")]
+@remove: //*[has-class("col-md-6 margen_b20")]
+
+#=========
+#remove #10 #13 from the urls
+#http://planoinformativo.com/fm/611803/fox-elimina-escena-de-the-predator-por-un-abusador-sexual
+#http://planoinformativo.com/fm/611801/index.php
+@replace("\u000d|\u000a",""): //*[has-class("instagram-media")]//*/@href
+@replace("\u000d|\u000a",""):$body//*/@src
+@replace("\u000d|\u000a","")://meta[@property="og:description"]/@content
+@replace("\u000d|\u000a","")://meta[@property="og:title"]/@content
+
+#=========img url ===
+image_url: $cover/@src
+image_url: $body//img[1]/@src
+image_url: //meta[@property="og:image"]/@content
+image_url: //meta[@name="twitter:image"]/@content[normalize-space()]
+image_url: //meta[@name="og:image"]/@content[normalize-space()]
+
+$youtt: $body//iframe[contains(@src,"youtube.com")]
+$gipht: $body//iframe[contains(@src,"giphy")]
+$jwplay: $body//video[contains(@src,"jwplatform")]
+
+@if_not($image_url) {
+ @if($youtt) { 
+  @set_attr(ytid,@src):$youtt
+  @match("embed/[\\w-]{11}+"): $youtt/@ytid
+  @replace("embed/","")
+ @set_attr(ytid,"https://img.youtube.com/vi/",@ytid, "\\/0.jpg"):$youtt
+  image_url:$youtt/@ytid
+#  https://img.youtube.com/vi/x09XSa1X1eU/0.jpg
+ }
+ @if( $jwplay ) {
+  @set_attr(jwthumb,@src): $jwplay
+  @replace("/videos/","/thumbs/"): $jwplay/@jwthumb
+  @replace(".mp4$","-720.jpg"): $jwplay/@jwthumb
+  image_url: $jwplay/@jwthumb 
+ #  http://content.jwplatform.com/thumbs/zLqF2E8z-720.jpg
+ }
+ @if($gipht) {
+  @set_attr(gifid,@src): $gipht
+ @replace("https://giphy.com/embed/","https://i.giphy.com/media/"): $gipht/@gifid
+  @set_attr(gifid,@gifid,"\\/giphy.gif"): $gipht
+  image_url: $gipht/@gifid 
+#  https://i.giphy.com/media/5tLtEKu7sePSM/giphy.mp4
+ }
+}
+#=========description ===
+@if("//meta[@property=\"og:title\"][contains(@content, //meta[@property=\"og:description\"]/@content)]"){
+ @replace("^.*$",""): //meta[@property="og:description"]/@content
+ description!!: $body//p[normalize-space(.)][string-length(.)>0][.//text()]
+}
+
+@if(//*[@tp="lead_par"][string-length(text())>0]){
+ description!!: //*[@tp="lead_par"]
+}
+@if("$title[contains(/text(),//*[@tp=\"lead_par\"]/text())]"){
+ @replace("^.*$",""): //*[@tp="lead_par"]/text()
+ description!!: $body//p[normalize-space(.)][string-length(.)>0][.//text()]
+}
+@if_not($description){
+ description!!: $body//p[normalize-space()][string-length(.)>0][.//text()]
+}
+@if ($description[text()=""]){
+ description!!: $body//p[normalize-space(.)][string-length(.)>0][.//text()]
+}
+
+$problems: $body
+@while( $problems ) {
+  $test: $body//*[self::blockquote or self::aside or self::video or self::audio or self::figure or (self::img and not(./ancestor::figure)) or self::iframe or self::slideshow or self::related or self::footer or self::div[has-class("fb-video")] or self::div[has-class("fb-post")] or self::table[not(ancestor::table) and not(descendant::table)]]
+
+  $problems: $test/self::*[ancestor::figure or ancestor::anchor or ancestor::blockquote[not(has-class("instagram-media"))] or ancestor::aside or ancestor::footer or ancestor::figcaption or ancestor::strong or ancestor::b or ancestor::em or ancestor::i or ancestor::ins or ancestor::u or ancestor::del or ancestor::s or ancestor::strike or ancestor::code or ancestor::kbd or ancestor::samp or ancestor::tt or ancestor::mark or ancestor::sup or ancestor::pic or ancestor::sub or ancestor::a or ancestor::reference or ancestor::h1 or ancestor::h2 or ancestor::h3 or ancestor::h4 or ancestor::h5 or ancestor::h6 or ancestor::p or ancestor::pre or ancestor::hr or ancestor::img or ancestor::br]
+@split_parent:$problems
+}
+

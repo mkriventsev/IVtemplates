@@ -1,0 +1,201 @@
+~version: "2.1"
+
+
+?path: /.+
+!path_not: /search.*
+!path_not: /theme.*
+!path_not: /article
+!path_not: /articles.*
+!path_not: /search/tag/.*
+title: //*[@id="article-head"]//h1
+body: //div[has-class("article-body")]
+site_name: "iRONNA"
+
+cover: //*[@id="jumbotron"]/figure
+@replace("/cover",""): $cover//img/@src
+
+@remove: //*[has-class("reading-time")]
+
+#author: //*[@id="article-head"]//*[has-class("appear-media")]
+author: //*[@id="article-head"]//p[preceding-sibling::h1]
+@debug: $author
+@replace("\\d{1,5}年.*\\d{1,2}.*月.*\\d{1,2}.*日号?",""): $author
+@replace("週刊ポスト",""): $author
+@replace("・\\s*\\d{1,2}.*月.*\\d{1,2}.*日号?",""):
+
+$author
+
+#月刊Wedge』2016/06/13
+@replace("\\d{4}/\\d{1,2}/\\d{1,2}", ""): $author
+
+#2016年06月13日
+@replace("\\d{4}.*年.*\\d{1,2}.*月.*\\d{1,2}.*日", ""): $author
+
+@replace("\\d{4}.*\\d{1,2}.*\\d{1,2}", ""): $author
+
+@replace("\\d{4}年\\d{1,2}月号", ""): $author
+#https://ironna.jp/article/1217 - number of issue
+#https://ironna.jp/article/2738 - number of issue
+
+##<< бред
+# @replace("『|』",""): $author
+# @replace("$\\s*|\\s*^", ""): $author
+# @append(<div>): $body
+# @set_attrs(ttp,"author",content,$author): $@
+# @remove: //h5[contains(text(),//div[@ttp="author"]/@content)]
+# @remove: //div[@ttp="author"]
+##<< бред
+#@debug: $body
+
+@remove: //*[has-class("appear-media")]
+
+@datetime(0): //meta[@property="og:article:publish_time"]/@content
+published_date: $@
+
+
+###=====remove img's href over imgs
+@match("(?i).+(?<!\\.jpg|\\.jpeg|\\.png|\\.gif)$"): //a[descendant::img]/@href
+@set_attr(href, "./..//self::a/@href"): //a[not(@href = //link[@rel="canonical"]/@href) and not(@href = //meta[@property="og:url"]/@content)]//img
+@set_attr(href, "./ancestor::a/@href"): //a[not(@href = //link[@rel="canonical"]/@href) and not(@href = //meta[@property="og:url"]/@content)]//img
+###==========
+
+###==pagination========
+@remove: //*[has-class("page-block")]//*[has-class("page-link-next")]
+@remove: //*[has-class("page-block")]//*[has-class("active")]
+@set_attrs(src,@href,tp,"pag"): //*[has-class("page-block")]//a[has-class("page-link")]
+<iframe>: //a[@tp="pag"]
+@inline: //iframe[@tp="pag"]
+@append_to($body): $@//div[has-class("article-body")]
+#@combine(): $@
+###==========
+
+@wrap(<figure>): $body//img[not(ancestor::figure)]
+@append_to("./prev-sibling::figure"): //figcaption
+#@split_parent: $body//*/figure
+#https://ironna.jp/article/3085
+@split_parent: //span//h1
+@split_parent: //span//h2
+@split_parent: //span//h3
+@split_parent: //span//h4
+@split_parent: //span//h5
+@split_parent: //span//h6
+
+<cite>: //blockquote//footer
+<figcaption>: //figure[./img]//footer
+
+
+
+@remove: //img[@src=""]
+#=====converting====
+
+<p>: //div[not(.//*)][text()]
+
+#<p>: //*[@data-ironna-pubs=""]#//*[@data-ironna-pubs=""]
+<p>: //*[has-class("body")]//div[not(.//*) or ./br][not(ancestor::figure)]
+
+<p>: /*[has-class("body")]//div[@data-ironna-pubs=""][not(ancestor::figure)]
+<p>: //div[has-class("embed-block")]
+<p>: //*[has-class("body")]//div[@class=""][@id=""][not(ancestor::figure)]
+
+
+<h3>://h1[.//p]//p
+<h3>://h2[.//p]//p
+<h3>://h3[.//p]//p
+<h3>://h4[.//p]//p
+<h3>://h5[.//p]//p
+<h3>://h5[.//p]//p
+#<p>: //*[has-class("body")]/text()
+#<div>: //p[ancestor::figure]
+
+#для дискрипшина https://ironna.jp/article/12263
+@combine(<br>): //p[./b][string-length(text())=0]/next-sibling::p[./b][string-length(text())=0]
+#============
+#<span>: //p[ancestor::table]
+
+@split_parent: //*[ancestor::div[has-class("article-body")] and not(ancestor-or-self::blockquote or ancestor-or-self::table or ancestor-or-self::figure)]//p[not(ancestor-or-self::blockquote or ancestor-or-self::table or ancestor-or-self::figure)]
+
+#======BBC======
+#SANNY @replace("^\\d{4}.{1,5}\\d{1,2}.{1,5}\\d{1,2}.{1,5}\\d{2}:\\d{2}.+",""): ($body//p/text())[1]
+
+#SANNY 
+
+#@replace("/file/w[0-9]+/h[0-9]+/","/file/")://img/@src
+
+@replace("/w[0-9]+/h[0-9]+/","/w1280/h720/"): //img/@src
+#https://ironna.jp/file/w1280/h720/d511171ba748dd199fa07ff9d6eb8aa8.jpg
+#SANNY 
+#============
+
+#======REMOVE======
+
+@remove: //figure[./*[contains(@src,"amazon-adsystem.com")]]
+@remove: //*[contains(@src,"amazon-adsystem.com")]
+@remove: //*[has-class("row ad-banner")]
+##===================
+#@replace("^\\s*$", " "): //*/text()
+#@replace("^\\s*$", " "): //p/text()
+### бред
+#@remove:
+### бред
+@replace("　", " "): //p[text()="　"][not(./*)]/text()
+#@remove: //p[text()="　"][not(./*)]/text()
+##===brs in blockquotes===
+@after(<br>): //blockquote//p[not(self::br) and not(self::li) and not(self::a)]
+#=========
+
+#<p>://p[./div[./p]]/div
+#<div>: //p[has-class("body")]
+
+# ###<< бред
+
+# @before(<hr>): //*[contains(text(),"＊　＊　＊")]
+# @remove:
+# ###https://ironna.jp/article/889
+
+# @combine(<br>):$body//p[string-length(text())=0][./span[has-class("wysiwyg-color-gray")]]
+# $grey: $@
+# @before(<hr>): $grey
+# @after(<hr>):$grey
+
+# @remove: //hr/next-sibling::hr
+# @remove: //span[has-class("wysiwyg-color-gray")][ancestor::*[next-sibling::hr[next-sibling::*[./span[has-class("wysiwyg-color-gray")]]]]]/ancestor::*/next-sibling::hr
+
+# ###<< бред
+
+@wrap(<em>): //*[has-class("wysiwyg-color-gray")]
+
+@before(<hr>)://img[@src="https://c.files.bbci.co.uk/FB9C/production/_90021446_grey_line_new.jpg"]/parent::node()
+@remove
+
+
+
+@replace(" ", ""): //p[text()=" " or text()="  " or text()="   "][not(./*)]/text()
+@replace(" ", ""): //p[text()=" " or text()="  " or text()="   "][not(./*)]/text()
+
+$problems: $body
+@while( $problems ) {
+  $test: $body//p
+  $problems: $test/*[self::h1 or self::h2 or self::h3 or self::h4 or self::h5 or self::h6 or self::p or self::ul]
+@split_parent:$problems
+}
+
+$problems: $body
+@while( $problems ) {
+  $test: $body//*[self::blockquote or self::aside or self::video or self::audio or self::figure or (self::img and not(./ancestor::figure)) or self::iframe or self::slideshow or self::related or self::footer or self::div[has-class("fb-video")] or self::div[has-class("fb-post")] or self::table[not(ancestor::table) and not(descendant::table)]]
+
+  $problems: $test/self::*[ancestor::figure or ancestor::anchor or ancestor::blockquote[not(has-class("instagram-media"))] or ancestor::aside or ancestor::footer or ancestor::figcaption or ancestor::strong or ancestor::b or ancestor::em or ancestor::i or ancestor::ins or ancestor::u or ancestor::del or ancestor::s or ancestor::strike or ancestor::code or ancestor::kbd or ancestor::samp or ancestor::tt or ancestor::mark or ancestor::sup or ancestor::pic or ancestor::sub or ancestor::a or ancestor::reference or ancestor::h1 or ancestor::h2 or ancestor::h3 or ancestor::h4 or ancestor::h5 or ancestor::h6 or ancestor::p or ancestor::pre or ancestor::hr or ancestor::img or ancestor::br]
+@split_parent:$problems
+}
+
+
+description!!: $body//p[normalize-space(.)][string-length(text())>0]
+
+@if ($description[string-length(text())<10]){
+description!!: //meta[@property="og:description"][contains(@content,//div[@ttp="author"]/@content)]/@content[normalize-space(.)]
+}
+
+#description!!: //meta[@name="og:description"]/@content[normalize-space()]
+#description!!: $body//*[normalize-space(.)][string-length(text())>0]
+# @debug
+
+# @debug: $description[normalize-space(.)]

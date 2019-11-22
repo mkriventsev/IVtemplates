@@ -1,0 +1,315 @@
+~version: "2.0"
+
+
+body: //div[@id="news_text"]
+
+title: //div[@id="news-page"]/section/div/h1[@itemprop="name"]
+
+subtitle: ///div[has-class("news-title")]/h2[@itemprop="description"]
+
+#cover:  //div[@id="news-page"]/section/div/div/div/figure
+@prepend_to($body): //div[@id="news-page"]/section/div/div/div/figure
+
+image_url: $cover/img/@src
+image_url: //meta[@property="og:image"]/@content
+@debug: $image_url
+
+description: $subtitle
+
+author: //meta[@name="author"]/@content
+author_url: //p[@id="news_source"]/a/@href
+
+@datetime(0): //div[has-class("post-detail")]/ul/li/span
+published_date: $@
+
+#site_name: "sport.ua"
+site_name: //meta[@property="og:site_name"]/@content
+channel:  "@sport_ua"
+
+
+# $alsoread1: //strong[text()="Читайте также: " or text()="Читайте также: " or text()="Читайте также. " or text()="Читайте также. " or text()="Читайте также, " or text()="Читайте также, " or text()="Читайте также " or text()="Читайте также " or text()="Читайте также" or text()="ЧИТАЙТЕ ТАКЖЕ: " or text()="ЧИТАЙТЕ ТАКЖЕ: " or text()="ЧИТАЙТЕ ТАКЖЕ. " or text()="ЧИТАЙТЕ ТАКЖЕ. " or text()="ЧИТАЙТЕ ТАКЖЕ, " or text()="ЧИТАЙТЕ ТАКЖЕ, " or text()="ЧИТАЙТЕ ТАКЖЕ " or text()="ЧИТАЙТЕ ТАКЖЕ " or text()="ЧИТАЙТЕ ТАКЖЕ"]/following-sibling::a
+
+# $alsoread1head: $alsoread1/preceding-sibling::strong[text()="Читайте также: " or text()="Читайте также: " or text()="Читайте также. " or text()="Читайте также. " or text()="Читайте также, " or text()="Читайте также, " or text()="Читайте также " or text()="Читайте также " or text()="Читайте также" or text()="ЧИТАЙТЕ ТАКЖЕ: " or text()="ЧИТАЙТЕ ТАКЖЕ: " or text()="ЧИТАЙТЕ ТАКЖЕ. " or text()="ЧИТАЙТЕ ТАКЖЕ. " or text()="ЧИТАЙТЕ ТАКЖЕ, " or text()="ЧИТАЙТЕ ТАКЖЕ, " or text()="ЧИТАЙТЕ ТАКЖЕ " or text()="ЧИТАЙТЕ ТАКЖЕ " or text()="ЧИТАЙТЕ ТАКЖЕ"][1]
+
+# @append_to($alsoread1head): $alsoread1
+
+# $alsoread2: //strong[text()="Читайте также: " or text()="Читайте также: " or text()="Читайте также. " or text()="Читайте также. " or text()="Читайте также, " or text()="Читайте также, " or text()="Читайте также " or text()="Читайте также " or text()="Читайте также" or text()="ЧИТАЙТЕ ТАКЖЕ: " or text()="ЧИТАЙТЕ ТАКЖЕ: " or text()="ЧИТАЙТЕ ТАКЖЕ. " or text()="ЧИТАЙТЕ ТАКЖЕ. " or text()="ЧИТАЙТЕ ТАКЖЕ, " or text()="ЧИТАЙТЕ ТАКЖЕ, " or text()="ЧИТАЙТЕ ТАКЖЕ " or text()="ЧИТАЙТЕ ТАКЖЕ " or text()="ЧИТАЙТЕ ТАКЖЕ"][descendant::a]
+
+
+# @if ($alsoread2){
+#   @set_attr(type,"inside"): $alsoread2
+#   @wrap(<related>): $alsoread2
+#   @set_attr(type,"insidemore"): $@
+#   #@wrap(<h4>): $alsoread2/text()
+#   <h4>: $alsoread2#/text()
+#   @debug: //related[@type="insidemore"]
+# }
+
+
+@style_to_attrs(width, width, height, height): $body//img[ends-with(@src,".gif")]
+<pic>: $body//img[ends-with(@src,".gif") and @width < 100 and @height < 100]
+@replace_tag(<pic>): //img[starts-with(@src,"https://www.biathlon.com.ua/")]
+@replace_tag(<pic>): //img[starts-with(@src,"http://www.biathlon.com.ua/")]
+@replace_tag(<pic>): //img[starts-with(@src,"https://biathlon.com.ua/")]
+@replace_tag(<pic>): //img[starts-with(@src,"http://biathlon.com.ua/")]
+
+#poker
+@replace_tag(<pic>): //img[starts-with(@src,"http://newspoker.ru/uploads/kinds/")]
+@replace_tag(<pic>): //img[starts-with(@src,"http://www.pokernews.com/img/cards/")]
+@replace_tag(<pic>): //img[starts-with(@src,"http://ru.pokernews.com/img/cards")]
+@replace_tag(<pic>): //img[starts-with(@src,"http://www.gipsyteam.ru/")]
+
+
+#footbal pics !!
+@replace_tag(<pic>): //img[starts-with(@src,"https://sport.ua/images/")][ends-with(@src,".gif")]
+@replace_tag(<pic>): //img[starts-with(@src,"/images/")][ends-with(@src,".gif")]
+@replace_tag(<pic>): //img[starts-with(@src,"//pic.sport.ua/images/")][ends-with(@src,".gif")]
+@replace_tag(<pic>): //img[starts-with(@src,"../../../../images/")][ends-with(@src,".gif")]
+@replace_tag(<pic>): //img[starts-with(@src,"../../images/")][ends-with(@src,".gif")]
+@replace_tag(<pic>): //img[starts-with(@src,"http://football.kulichki.net/league/")][ends-with(@src,".gif")]
+
+@replace_tag(<pic>): //img[starts-with(@src,"http://ru.uefa.com/imgml/icons/")][ends-with(@src,".gif")]
+
+
+#flags icons
+@replace_tag(<pic>): //img[starts-with(@src,"//pic.sport.ua/images/flags/")]
+@replace_tag(<pic>): //img[starts-with(@src,"https://sport.ua/images/flags/")]
+@replace_tag(<pic>): //img[starts-with(@src,"http://olympicgames.com.ua/images/flags/")]
+@replace_tag(<pic>): //img[starts-with(@src,"http://prodota.ru/lib/editors/imperavi/plugins/flags/")]
+@replace_tag(<pic>): //img[starts-with(@src,"http://ping.ua/images/news_im/flags/")]
+@replace_tag(<pic>): //img[starts-with(@src,"http://gameinside.ua/wp-content/plugins/world-flag")]
+@replace_tag(<pic>): //img[starts-with(@src,"http://st.championat.net/i/cflags/")]
+@replace_tag(<pic>): //img[starts-with(@src,"http://ping.myplace.ua/images/news_im/flags/")]
+@replace_tag(<pic>): //img[starts-with(@src,"http://www.ercrugby.com/tools/images/teams/")]
+@replace_tag(<pic>): //img[starts-with(@src,"https://media.aws.iaaf.org/Flags/")]
+@replace_tag(<pic>): //img[starts-with(@src,"https://img.championat.com/team/")]
+@replace_tag(<pic>): //img[contains(@src,"/control/inc/fckeditor/editor/images/")]
+@replace_tag(<pic>): //img[starts-with(@src,"http://hellraisers.pro/uploads/ckeditor/elfinder/flags/")]
+@replace_tag(<pic>): //img[starts-with(@src,"http://www.cyberarena.tv/306/userfiles/image/Flags/")]
+@replace_tag(<pic>): //img[starts-with(@src,"http://flags.cdn.gamesports.net/")]
+@replace_tag(<pic>): //img[starts-with(@src,"http://wesgg.com/images/flag/")]
+@replace_tag(<pic>): //img[contains(@src,"f1news.ru/images/")]
+
+@replace_tag(<pic>): //img[contains(@src,"http://cdncache-a.akamaihd.net/items/it/img/arrow-10x10.png")]
+
+
+#In old articles, the flags of the countries were used for a short time from such a resource: #https://pic.sport.ua/media/images/ua.gif
+#Here just with 2 symbols in the filename, like country code
+#that's why I did this small trick below
+@replace("(?<=pic.sport.ua/media/images/\\w{1}\\.gif)","_flag_icon"): $body/..//img/@src
+@replace("(?<=pic.sport.ua/media/images/\\w{2}\\.gif)","_flag_icon"): $body/..//img/@src
+@replace("(?<=pic.sport.ua/media/images/\\w{1}\\.png)","_flag_icon"): $body/..//img/@src
+@replace("(?<=pic.sport.ua/media/images/\\w{2}\\.png)","_flag_icon"): $body/..//img/@src
+@replace_tag(<pic>): //img[contains(@src,"_flag_icon")]
+@replace("_flag_icon$",""): //pic/@src
+
+<img>: $body//pic[ends-with(@src,".gif") and @width > 200 or @height > 200]
+
+@urldecode: //link[@rel="canonical"]/@href
+@urldecode: //meta[@property="og:url"]/@content
+@urldecode: //a[descendant::img]/@href
+@match("(?i).+(?<!\\.jpg|\\.jpeg|\\.png|\\.gif)$"): //a[descendant::img]/@href
+@set_attr(href, "./../self::a/@href"): //a[not(@href = //link[@rel="canonical"]/@href) and not(@href = //meta[@property="og:url"]/@content)]//img
+
+
+
+
+<div>: //a[.//img]
+<div>: //p[.//img]
+<div>: //strong[.//img]
+<div>: //strong[.//table]
+<div>: //p[.//table]
+<div>: //b[.//img]
+<div>: //u[.//img]
+<div>: //ul[.//img]
+<div>: //em[.//img]
+<div>: //i[.//img]
+<div>: //p[.//iframe]
+<div>: //em[.//iframe]
+<div>: //strong[.//iframe]
+<div>: //blockquote[.//iframe]
+<div>: //b[.//iframe]
+<div>: //h3[.//iframe]
+<div>: //a[.//iframe]
+<div>: //u[.//iframe]
+<div>: //p[.//related]
+#//blockquote
+#//aside
+#//img
+#//iframe
+#//slideshow
+#//table
+#//related
+#//footer
+@remove: //*[@class="stat-block__pic"]
+$tablecaption: //div[has-class("stat-block__head")]
+<table>: $tablecaption/parent::node()
+@set_attr(type, "stat-block-table"): $@
+<caption>://div[has-class("stat-block__head")]
+<th>: //div[has-class("stat-block-table__head")]/span
+<tr>: //div[has-class("stat-block-table__head")]
+<tr>://div[has-class("stat-block-table__row")]
+<td>: //tr[has-class("stat-block-table__row")]/span
+
+@remove: //div[has-class("play__view")]
+@remove: //div[has-class("b_stavka_calendar")]
+<caption>: //div[has-class("result__title")]
+@wrap(<table>): $@
+<tr>: //div[has-class("play__desc")]
+<td>: //div[has-class("play__cell")]
+@combine:             //div[has-class("play__item")]/following-sibling::*[1]/self::div[has-class("play__item")]
+<table>: //div[has-class("play__item")]
+@set_attr(class,"play__item"): //table[descendant::caption]
+
+@after_el("./../self::div[has-class(\"play\")]"): //table[has-class("play__item")]
+@remove: //div[has-class("play")]
+@after_el("./../self::div[has-class(\"result__block\")]"): //table[has-class("play__item")]
+@remove: //div[has-class("result__block")]
+@combine: //table[has-class("play__item")]/following-sibling::*[1]/self::table[has-class("play__item")]
+
+#@after_el("./../self::p"): //img
+@after_el("./../self::strong"): //img
+@after_el("./../self::p"): //iframe
+
+#try to show images in tables, like FC icons, TV channel logos
+<pic>: //td/img
+<pic>: //td/div/img
+<pic>: //table/td/img
+<pic>: //td/strong/img
+<pic>: //td/..//img
+#<figure>: $body/img
+
+#<img>: $body//pic[ends-with(@src,".gif") and @width > 200 and @height > 200]
+
+@wrap(<figure>): $body//img
+
+#youtube in object
+
+
+$gifs_notflags: //figure[descendant::img[ends-with(@src,".gif")]]
+@html_to_dom:  $gifs_notflags/img/@href
+@append_to($gifs_notflags): $@
+@replace_tag(<figcaption>): $gifs_notflags/dom
+@wrap_inner(<a>): $@
+@set_attr(href, $gifs_notflags/img/@href): $@
+@remove: //figure[descendant::img[ends-with(@src,"idea.gif")]]/figcaption
+@debug: $gifs_notflags
+
+
+# $gifs_notflags: //figure[descendant::img[ends-with(@src,".gif")]]
+# @debug
+# @append(<a>, href, $gifs_notflags/img/@href): $gifs_notflags
+# #@html_to_dom:  $gifs_notflags/img/@href
+# #@append_to($gifs_notflags): $@
+# @wrap(<figcaption>): $gifs_notflags/a
+# @debug: $gifs_notflags
+
+youtubecontant: //object/embed[starts-with(@src,"http://www.youtube.com/v/")]
+@if( $youtubecontant ) {
+ @remove: //object/param
+ <iframe>: //object
+ <div>: //p[.//iframe]
+ @replace("http://www.youtube.com/v/","https://www.youtube.com/embed/"): //iframe/embed/@src
+ @set_attr(type, ""): //iframe/embed
+ @set_attr(wmode, ""): //iframe/embed
+ @set_attr(src, ./embed/@src): //iframe
+ @remove: //iframe/embed
+}
+@replace("https://www.youtube.com/embed/","http://www.youtube.com/v/"): //object/embed[starts-with(@src,"http://www.youtube.com/v/")]
+
+#@debug: //img
+
+#add news source
+@append_to($body): //*[@id="news_source"]
+
+
+#add related  last
+@if (//div[has-class("materials")]/div[has-class("materials__title")]){
+   @append(<related>): $body
+   @set_attr(type,"materials"): $@
+   <h3>: //div[has-class("materials")]/div[has-class("materials__title")]
+   @append_to(//related[@type="materials"]): //h3[has-class("materials__title")]
+   @append_to(//related[@type="materials"]): //div[has-class("materials__element")]
+}
+
+#remove shit @unsupported
+
+@remove: //div[has-class("sportua-bet-block")]
+@remove: /a[starts-with(href,"http://www.betfair.com/?rfr")]
+@remove: //img[@src="/media/betfair_button.jpg"]
+@remove: //a[starts-with(href,"http://partners.parimatch.com/")]
+@remove: //img[@src="//pic.sport.ua/media/images/155x20_gif.gif"]
+@if( $author ) {
+  @remove: //p[@id="news_source"][contains(text(),"Автор —")]
+}
+
+@debug: //*[has-class("twitter-tweet")]
+#@set_attr(class, "tw"): $@
+#@append(<iframe>): $body
+#@set_attr(src,  "https://twitter.com/DFSBBallGuy/status/1046088681541574657"): $@
+@remove: //img[@src="http://meta.ua/img/b4/90x25.gif"]
+#@remove: //*[has-class("sportua-bet-btn-wrap")]
+@unsupported: //iframe[starts-with(@src,"http://video.shakhtar.com")]
+@unsupported: //iframe[starts-with(@src,"https://live-stream365.com")]
+@unsupported: //iframe[starts-with(@src,"https://vip7stream.pw")]
+@unsupported: //iframe[starts-with(@src,"https://www.obozrevatel.com/")]
+#@unsupported: //iframe[starts-with(@src,"//video.meta.ua")]
+@unsupported: //iframe[starts-with(@src,"//footballua.tv/player?")]
+#@remove: //iframe[starts-with(@src,"//footballua.tv/player?")]
+@unsupported: //iframe[starts-with(@src,"http://www.dailymotion.com")]
+@unsupported: //iframe[starts-with(@src,"http://www.molvidi.hu")]
+@unsupported: //iframe[starts-with(@src,"http://www.vidi.hu/")]
+@unsupported: //iframe[starts-with(@src,"//1plus1.video")]
+@unsupported: //iframe[starts-with(@src,"https://1plus1.video")]
+@unsupported: //iframe[starts-with(@src,"https://ovva.tv/")]
+@unsupported: //iframe[starts-with(@src,"//ovva.tv/")]
+@unsupported: //iframe[starts-with(@src,"http://videoshara.net/")]
+@unsupported: //iframe[starts-with(@src,"http://video.nhl.com/")]
+@unsupported: //iframe[starts-with(@src,"//video.bigmir.net")]
+@unsupported: //iframe[starts-with(@src,"https://www.nhl.com/video/embed")]
+@unsupported: //iframe[starts-with(@src,"http://tv.dfb.de/playvid.php")]
+#@unsupported: //iframe[starts-with(@src,"//players.brightcove.net/")]
+
+
+# unsupported quiz articles, like https://sport.ua/news/398636-test-naskolko-horosho-vy-sledili-za-transferami-apl
+#https://sport.ua/news/390019-test-kak-horosho-vy-pomnite-chempionat-mira-2014
+
+
+### wowowowoow div p etc
+#<p>: //div[not(@class)][not(.//div)][text()]
+
+@unsupported: //div[@class="apester-media"]
+@unsupported: //div[@class="playbuzz"]
+@unsupported: //iframe[@title="Apester - Interactive content"]
+@unsupported: //object
+#@remove: //object
+#@remove: //embed
+#@remove: //p/text()=" "
+@remove: //ul[has-class("social")]
+@remove: //div[has-class("sportua-bet-btn-wrap")]
+@remove: //a[contains(@href,"clickstats.online")]
+# =====LET ME DIE=====
+# Original code/idea by Misho @mushi_f
+# With modifications by Andrei Afanasiev
+
+# <p>: $body//div/span[not(@class or @id)][not(.//*)][text()]
+# <p>: $body//div[not(@class or @id)][not(.//*)][text()]
+
+$problems: $body
+@while( $problems ) {
+  $test: $body//*[self::blockquote or self::aside or self::figure or (self::img and not(./ancestor::figure)) or self::iframe or self::slideshow or self::related or self::footer or self::table[not(ancestor::table) and not(descendant::table)]]
+
+  $problems: $test/self::*[ancestor::anchor or ancestor::blockquote or ancestor::aside or ancestor::footer or ancestor::strong or ancestor::b or ancestor::em or ancestor::i or ancestor::ins or ancestor::u or ancestor::del or ancestor::s or ancestor::strike or ancestor::code or ancestor::kbd or ancestor::samp or ancestor::tt or ancestor::mark or ancestor::sup or ancestor::pic or ancestor::sub or ancestor::a or ancestor::reference or ancestor::h1 or ancestor::h2 or ancestor::h3 or ancestor::h4 or ancestor::h5 or ancestor::h6 or ancestor::p or ancestor::pre or ancestor::hr or ancestor::img or ancestor::br]
+
+  @if( $problems ) {
+    $parent: $problems/parent::*
+    @detach: $parent/node()
+    @set_attr("merge", $index): $@
+    <remove>: $parent
+    @after_el("./parent::*"): $problems
+    @combine: $body//self::*[prev-sibling::*/@merge = @merge]
+  }
+}
+#====================
+#@debug
+

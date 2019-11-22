@@ -1,0 +1,340 @@
+~version: "2.0"
+
+body: //div[has-class("text_content")]
+title: //h1[has-class("main_topic")]
+
+#@debug: //img/@src
+#@set_attr(data-owner, ""): //div[has-class("main_single_img")]/img
+#@set_attr(data-author, ""): //div[has-class("main_single_img")]/img
+#@set_attr(data-owner, ""):  $body//img
+#@debug: $body//img
+
+@set_attr(data-author, ""): //img[not(@data-author)]
+@set_attr(data-owner, ""): //img[not(@data-owner)]
+
+
+#hmmm some old articles
+@detach: $body//a[descendant::img]/node()
+@detach: $body//a[descendant::p[descendant::iframe]]/node()
+
+@urldecode: //link[@rel="canonical"]/@href
+@urldecode: //meta[@property="og:url"]/@content
+@urldecode: //a[descendant::img]/@href
+
+@match("(?i).+(?<!\\.jpg|\\.jpeg|\\.png|\\.gif)$"): //a[descendant::img]/@href
+
+@set_attr(href, "./..//self::a/@href"): //a[not(@href = //link[@rel="canonical"]/@href) and not(@href = //meta[@property="og:url"]/@content)]//img
+@set_attr(href, "./ancestor::a/@href"): //a[not(@href = //link[@rel="canonical"]/@href) and not(@href = //meta[@property="og:url"]/@content)]//img
+
+
+###################################
+##       OMG COVER SHITTY        ##
+###################################
+@set_attr(data-owner-original, ./@data-owner): //div[has-class("main_single_img")]/img
+
+@wrap(<figure>): //div[has-class("main_single_img")]/img
+@set_attr(tp,"cover"): $@
+@append(<figcaption>): //figure[@tp="cover"]
+$covercaption: $@
+
+$match_data_owner: $covercaption/parent::node()/img
+@match("[a-zа-я]*\\.[a-zа-я]*"): $match_data_owner/@data-owner
+
+@if_not($match_data_owner[@data-owner=""]){
+ $tvofins: //div[has-class("main_single_img")]/figure/img[contains(@data-owner,"twitter") or contains(@data-owner,"vk") or contains(@data-owner,"ok") or contains(@data-owner,"facebook") or contains(@data-owner,"instagram")]
+ @if ($tvofins){
+  @set_attr(citec, $tvofins/@data-owner, " / ", $tvofins/@data-author): $covercaption
+  @set_attr(tvofins, "done"): $covercaption
+  $tvofinsdone: $covercaption[@tvofins = "done"]
+ }
+ @if_not($tvofinsdone){
+  @if_not($match_data_owner[@data-author=""]){
+   @set_attr(citec, "© ", $match_data_owner/@data-owner, " / ", $match_data_owner/@data-author): $covercaption
+  }
+  @if($match_data_owner[@data-author=""]){
+   @set_attr(citec, "© ", $match_data_owner/@data-owner): $covercaption
+  }
+ }
+ @set_attr(firstmatchcycle, "done"): $covercaption
+$firstmatchcycledone: $covercaption[@firstmatchcycle = "done"]
+}
+@if_not($firstmatchcycledone){ #else
+ @if_not($match_data_owner[@data-owner-original=""]){
+  $copyowner: $match_data_owner[@data-owner-original="Политика сегодня" or @data-owner-original="РИА Новости" or @data-owner-original="Global Look Press"]
+  @if($copyowner){
+   @set_attr(data-owner, "© ", $match_data_owner/@data-owner-original)
+   @set_attr(copyowner, "done"): $match_data_owner
+   $copyownerdone: //img[@copyowner="done"]/parent::node()
+  }
+  @if_not($copyownerdone){
+   @set_attr(data-owner, $match_data_owner/@data-owner-original): $match_data_owner
+  }
+  @if_not($match_data_owner[@data-author=""]){
+   @set_attr(citec, $match_data_owner/@data-owner, " / ", $match_data_owner/@data-author): $covercaption
+  }
+  @if($match_data_owner[@data-author=""]){
+   @set_attr(citec, $match_data_owner/@data-owner): $covercaption
+  }
+ }
+ @if($match_data_owner[@data-owner=""]){
+  @set_attr(citec, "© Политика сегодня / polit.info"): $covercaption
+ }
+}
+$picdata_desc: $covercaption/parent::node()/img/@alt
+#@debug: $covercaption/@citec
+@html_to_dom:  $covercaption/@citec
+@append_to($covercaption): $@
+@replace_tag(<cite>): $covercaption/dom
+@set_attr(descc, $picdata_desc): $covercaption
+@html_to_dom:  $covercaption/@descc
+@append_to($covercaption): $@
+
+cover: $covercaption/parent::node()
+image_url: $cover/self::figure//img/@src
+image_url: //meta[@property="og:image"]/@content
+###################################
+##        FUCK YEAH DONE         ##
+###################################
+
+#description: $subtitle
+
+author: //div[has-class("author")]/span
+author: //meta[@name="mediator_author"]/@content
+author: //meta[@name="author"]/@content
+
+@datetime(+3): //meta[@name="mediator_published_time"]/@content
+published_date: $@
+#author_url: //p[@id="news_source"]/a/@href
+
+
+site_name: "Политика Сегодня"
+#//meta[@property="og:site_name"]/@content
+channel:  "@ThePoliticsToday"
+
+###################################
+##       images shitty, too      ##
+###################################
+
+@map($body//img) {
+  $image: $@
+  @set_attr(data-owner-original, @data-owner): $image
+  @wrap(<figure>): $image
+  @set_attr(tp,"imag"): $@
+  @append(<figcaption>):  $image/parent::node()[@tp="imag"]
+  $imagecaption: $@
+#  @debug: $image
+#  @debug: $imagecaption
+  @match("[a-zа-я]*\\.[a-zа-я]*"): $image/@data-owner
+  @if_not($image[@data-owner=""]){
+  @debug: $image/@data-owner
+   @debug: $image
+   $tvofinst: $image[contains(@data-owner,"twitter") or contains(@data-owner,"vk") or contains(@data-owner,"ok") or contains(@data-owner,"facebook") or contains(@data-owner,"instagram")]
+   @if ($tvofinst){
+    @set_attr(citec, $tvofinst/@data-owner, " / ", $tvofinst/@data-author): $imagecaption
+    @set_attr(tvofinst, "done"): $imagecaption
+   }
+   @if_not($imagecaption/@tvofinst){
+    @if_not($image[@data-author=""]){
+     @set_attr(citec, "© ", $image/@data-owner, " / ", $image/@data-author): $imagecaption
+    }
+    @if($image[@data-author=""]){
+     @set_attr(citec, "© ", $image/@data-owner): $imagecaption
+    }
+   }
+   @set_attr(firstmatchimgcycle, "done"): $imagecaption
+  }
+
+#else
+  @if_not($imagecaption/@firstmatchimgcycle){
+#   @debug: $image
+   @if_not($image[@data-owner-original=""]){
+    $copyiowner: $image[@data-owner-original="Политика сегодня" or @data-owner-original="Global Look Press"]
+    ###set data-owner (c) + owner to data-owner
+    @if($copyiowner){
+     @set_attr(data-owner, "© ", $image/@data-owner-original): $image
+     @set_attr(copyiowner, "done"): $image
+    }
+    @debug: $image
+    #else set data-owner  for oelse branch
+    @if_not($image/@copyiowner){
+        @debug: $image
+     @set_attr(data-owner, $image/@data-owner-original): $image
+    }
+    @debug: $image
+    # if author != "" set "data owner / data author"
+    @if_not($image[@data-author=""]){
+     @set_attr(citec, $image/@data-owner, " / ", $image/@data-author): $imagecaption
+    }
+    # if author == "" set "data owner"
+    @if($image[@data-author=""]){
+     @set_attr(citec, $image/@data-owner): $imagecaption
+    }
+   }
+#   @debug: $image
+###!!!!!!!  ### if after reverting data-owner original to
+   @if($image[@data-owner=""]){
+    @set_attr(citec, "© Политика сегодня / polit.info"): $imagecaption
+   }
+  }
+  $imagedata_desc: $image/@alt
+  @html_to_dom: $imagecaption/@citec
+  @append_to($imagecaption): $@
+  @replace_tag(<cite>): $imagecaption/dom
+  @set_attr(ddesc, $imagedata_desc): $imagecaption
+  @html_to_dom: $imagecaption/@ddesc
+  @append_to($imagecaption): $@
+#  @debug: $imagecaption/parent::node()
+}
+#*******************************************
+#**             it was crazy             ***
+#*******************************************
+@debug: //blockquote[has-class("twitter-tweet")][not(descendant::a[contains(@href,"/status/")])]
+
+#@debug: //blockquote[has-class("twitter-tweet")]
+$twi: //blockquote[has-class("twitter-tweet")][descendant::a[contains(@href,"/status/") or contains(@href,"/statuses/") ]]
+@map (//blockquote[has-class("twitter-tweet")]){
+ $twit: $@
+ $twia: $twit/a[contains(@href,"/status/")]
+ @if($twia){
+ @wrap(<iframe>):  $twit
+ @set_attrs(tp, "twiiv", src, $twia/@href):$@
+ @remove: $twit
+ }
+ @if_not($twia){
+   @replace("twitter-tweet","tw-tw"): $twit/@class
+   <blockquote>: $twit/p
+   <p>: $twit
+ }
+}
+#  <blockquote>: //blockquote/p
+#   <p>: $@/parent::node()
+@after(<blockquote>): //blockquote/p
+
+
+
+
+# @wrap(<a>): //a[.//img]//text()
+# <div>: //a[.//a]
+# @remove: $@//br
+# @combine(<br>, <br>): //a/next-sibling::a
+
+
+<div>: //a[.//img]
+<div>: //p[.//img]
+#<div>: //strong[.//img]
+<div>: //strong[.//table]
+<div>: //p[.//table]
+<div>: //b[.//img]
+<div>: //u[.//img]
+<div>: //ul[.//img]
+<div>: //em[.//img]
+<div>: //i[.//img]
+<div>: //p[.//iframe]
+<div>: //em[.//iframe]
+<div>: //p[.//related]
+<div>: //blockquote[.//iframe]#//
+<div>: //a[.//blockquote]
+#<div>: //blockquote[.//img]#//
+#//aside
+#//img
+#//iframe
+#//slideshow
+#//table
+#//related
+#//footer
+
+
+#@after_el("./../self::p"): //img
+@after_el("./../self::strong"): //img
+@after_el("./../self::p"): //iframe
+
+#try to show images in tables, like FC icons, TV channel logos
+<pic>: //td/img
+<pic>: //td/div/img
+<pic>: //table/td/img
+<pic>: //td/strong/img
+
+
+
+#####VK#####
+#https://polit.info/372518-obratnaya-svyaz-chinovniki-i-politiki-v-socsetyakh-10-noyabrya
+#https://polit.info/417292-rossiya-v-kazhdom-okne-molodezhka-onf-provodit-akciyu-ko-dnyu-gosudarstvennogo-flaga
+
+# @remove: //script[contains(text(),"window.postInfo")]
+# #@replace("'vk_post_-152880716_376', -152880716, 376, 'VVikOXo4kc3NuwIgJF-Fta1FhBU'", "\"vk_post_-152880716_376\", 152880716, 376, \"VVikOXo4kc3NuwIgJF-Fta1FhBU\", {width: 500{} dfdfd}"): //script[contains(text(),"VK.Widgets.Post")]
+
+# @match("VK.Widgets.Post\\((.+?)\\)",1)://script[contains(text(),"VK.Widgets.Post")]
+# @replace("[,\\s]*{.*}$",""): $@
+# @debug
+# $arr://*[starts-with(@id,"vk_post")]
+# @map($arr){
+#  $vkpost: $@
+#  @debug
+#  @append(<div>): $body
+#  @set_attrs(type,"vkkostyl",id,$vkpost/@id): $@
+#  $vkkostyl: $@
+#  @debug:   $vkkostyl
+#  $vkscript: //script[contains(text(),//div[@type="vkkostyl"]/@id)]
+#  @debug: $vkscript
+#  @if($vkscript) {
+#   #https://polit.info/379599-obratnaya-svyaz-chinovniki-i-politiki-v-socsetyakh-22-dekabrya
+#   @replace("^.vk_post_(.*?),(.*?),(.*?),\\s*",""): $vkscript
+#   @replace("[\\'\",]*",""): $vkscript
+#   $vkhash: $vkscript/text()
+#   @debug: $vkhash
+#   @replace("vk_post_","%vkurl%"): $vkkostyl/@id
+#   @replace("_","&post_id="): $vkkostyl/@id
+#   @replace("%vkurl%", "https://vk.com/widget_post.php?owner_id="): $vkkostyl/@id
+#   @set_attr(id, @id,"&hash=" ,$vkhash): $vkkostyl
+#   @set_attr(src, $vkkostyl/@id): $vkpost
+#   <iframe>:$vkpost
+#  }
+#  @remove: //div[@type="vkkostyl"]
+#  $vkkostyl: null
+#  $vkscript: null
+#  $vkhash: null
+# }
+
+# <VK>
+@before(<good>): /html/body
+@replace(".*(?<=VK\\.Widgets\\.Post\\()['\"](.*?)['\"]\\s*?,\\s*([\\d-]+)\\s*?,\\s*([\\d-]+)\\s*?,\\s*['\"](.*?)['\"].*(?=\\)).*", "<iframe did=\"$1\" src=\"https://vk.com/widget_post.php?owner_id=$2&post_id=$3&hash=$4\"></iframe>"): $body//script[contains(., "VK.Widgets.Post")]
+@html_to_dom: $@
+$doms: $@
+@append_to(/html/good): $doms/iframe[@did=./ancestor::html/body//div/@id]
+@append_to("./ancestor::html/body//div[@id=(/html/good/iframe/@did)[1]]"): $@
+@remove: $doms
+# </VK>
+
+
+@remove: //div[has-class("author_tags_block")]
+@remove: //div[has-class("telegram")]
+@remove: //a[text()="Читайте ИА «Политика сегодня» в Яндекс.новостях"]
+@remove: //video[starts-with(@id,"yaVideoPlayer")]
+
+
+@replace("^\\s+$", ""): //blockquote/text()
+@replace("^\\s+$", " "): //text()
+#@detach: //a/*
+# =====LET ME DIE=====
+# Original code/idea by Misho @mushi_f
+# With modifications by Andrei Afanasiev
+#<div>: //a[.//strong]
+$problems: $body
+#Element <video> is not supported in <p>: 
+@while( $problems ) {
+  $test: $body//*[self::blockquote or self::aside or self::video or self::audio or self::figure or (self::img and not(./ancestor::figure)) or self::iframe or self::slideshow or self::related or self::footer or self::table[not(ancestor::table) and not(descendant::table)]]
+
+  $problems: $test/self::*[ancestor::anchor or ancestor::blockquote[not(has-class("instagram-media"))] or ancestor::aside or ancestor::footer or ancestor::strong or ancestor::b or ancestor::em or ancestor::i or ancestor::ins or ancestor::u or ancestor::del or ancestor::s or ancestor::strike or ancestor::code or ancestor::kbd or ancestor::samp or ancestor::tt or ancestor::mark or ancestor::sup or ancestor::pic or ancestor::sub or ancestor::a or ancestor::reference or ancestor::h1 or ancestor::h2 or ancestor::h3 or ancestor::h4 or ancestor::h5 or ancestor::h6 or ancestor::p or ancestor::pre or ancestor::hr or ancestor::img or ancestor::br]
+
+  @if( $problems ) {
+    $parent: $problems/parent::*
+    @detach: $parent/node()
+    @set_attr("merge", $index): $@
+    <remove>: $parent
+    @after_el("./parent::*"): $problems
+    @combine: $body//self::*[prev-sibling::*/@merge = @merge]
+  }
+}
+#====================
+
+# https://polit.info/372518-obratnaya-svyaz-chinovniki-i-politiki-v-socsetyakh-10-noyabrya
