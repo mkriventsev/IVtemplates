@@ -37,14 +37,14 @@ $author
 #https://ironna.jp/article/1217 - number of issue
 #https://ironna.jp/article/2738 - number of issue
 
-##<< бред
+##<< kludge
 # @replace("『|』",""): $author
 # @replace("$\\s*|\\s*^", ""): $author
 # @append(<div>): $body
 # @set_attrs(ttp,"author",content,$author): $@
 # @remove: //h5[contains(text(),//div[@ttp="author"]/@content)]
 # @remove: //div[@ttp="author"]
-##<< бред
+##<< kludge
 #@debug: $body
 
 @remove: //*[has-class("appear-media")]
@@ -107,7 +107,7 @@ published_date: $@
 #<p>: //*[has-class("body")]/text()
 #<div>: //p[ancestor::figure]
 
-#для дискрипшина https://ironna.jp/article/12263
+#for description https://ironna.jp/article/12263
 @combine(<br>): //p[./b][string-length(text())=0]/next-sibling::p[./b][string-length(text())=0]
 #============
 #<span>: //p[ancestor::table]
@@ -134,9 +134,9 @@ published_date: $@
 ##===================
 #@replace("^\\s*$", " "): //*/text()
 #@replace("^\\s*$", " "): //p/text()
-### бред
+### kludge
 #@remove:
-### бред
+### kludge
 @replace("　", " "): //p[text()="　"][not(./*)]/text()
 #@remove: //p[text()="　"][not(./*)]/text()
 ##===brs in blockquotes===
@@ -146,7 +146,7 @@ published_date: $@
 #<p>://p[./div[./p]]/div
 #<div>: //p[has-class("body")]
 
-# ###<< бред
+# ###<< kludge
 
 # @before(<hr>): //*[contains(text(),"＊　＊　＊")]
 # @remove:
@@ -160,7 +160,7 @@ published_date: $@
 # @remove: //hr/next-sibling::hr
 # @remove: //span[has-class("wysiwyg-color-gray")][ancestor::*[next-sibling::hr[next-sibling::*[./span[has-class("wysiwyg-color-gray")]]]]]/ancestor::*/next-sibling::hr
 
-# ###<< бред
+# ###<< kludge
 
 @wrap(<em>): //*[has-class("wysiwyg-color-gray")]
 

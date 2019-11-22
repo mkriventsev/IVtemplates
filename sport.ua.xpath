@@ -26,6 +26,7 @@ published_date: $@
 site_name: //meta[@property="og:site_name"]/@content
 channel:  "@sport_ua"
 
+#======== no more need to perform these kludgessss with new contest rules 
 
 # $alsoread1: //strong[text()="Читайте также: " or text()="Читайте также: " or text()="Читайте также. " or text()="Читайте также. " or text()="Читайте также, " or text()="Читайте также, " or text()="Читайте также " or text()="Читайте также " or text()="Читайте также" or text()="ЧИТАЙТЕ ТАКЖЕ: " or text()="ЧИТАЙТЕ ТАКЖЕ: " or text()="ЧИТАЙТЕ ТАКЖЕ. " or text()="ЧИТАЙТЕ ТАКЖЕ. " or text()="ЧИТАЙТЕ ТАКЖЕ, " or text()="ЧИТАЙТЕ ТАКЖЕ, " or text()="ЧИТАЙТЕ ТАКЖЕ " or text()="ЧИТАЙТЕ ТАКЖЕ " or text()="ЧИТАЙТЕ ТАКЖЕ"]/following-sibling::a
 
@@ -133,14 +134,8 @@ channel:  "@sport_ua"
 <div>: //a[.//iframe]
 <div>: //u[.//iframe]
 <div>: //p[.//related]
-#//blockquote
-#//aside
-#//img
-#//iframe
-#//slideshow
-#//table
-#//related
-#//footer
+
+
 @remove: //*[@class="stat-block__pic"]
 $tablecaption: //div[has-class("stat-block__head")]
 <table>: $tablecaption/parent::node()
@@ -232,7 +227,7 @@ youtubecontant: //object/embed[starts-with(@src,"http://www.youtube.com/v/")]
    @append_to(//related[@type="materials"]): //div[has-class("materials__element")]
 }
 
-#remove shit @unsupported
+#remove  @unsupported things
 
 @remove: //div[has-class("sportua-bet-block")]
 @remove: /a[starts-with(href,"http://www.betfair.com/?rfr")]
@@ -244,18 +239,12 @@ youtubecontant: //object/embed[starts-with(@src,"http://www.youtube.com/v/")]
 }
 
 @debug: //*[has-class("twitter-tweet")]
-#@set_attr(class, "tw"): $@
-#@append(<iframe>): $body
-#@set_attr(src,  "https://twitter.com/DFSBBallGuy/status/1046088681541574657"): $@
 @remove: //img[@src="http://meta.ua/img/b4/90x25.gif"]
-#@remove: //*[has-class("sportua-bet-btn-wrap")]
 @unsupported: //iframe[starts-with(@src,"http://video.shakhtar.com")]
 @unsupported: //iframe[starts-with(@src,"https://live-stream365.com")]
 @unsupported: //iframe[starts-with(@src,"https://vip7stream.pw")]
 @unsupported: //iframe[starts-with(@src,"https://www.obozrevatel.com/")]
-#@unsupported: //iframe[starts-with(@src,"//video.meta.ua")]
 @unsupported: //iframe[starts-with(@src,"//footballua.tv/player?")]
-#@remove: //iframe[starts-with(@src,"//footballua.tv/player?")]
 @unsupported: //iframe[starts-with(@src,"http://www.dailymotion.com")]
 @unsupported: //iframe[starts-with(@src,"http://www.molvidi.hu")]
 @unsupported: //iframe[starts-with(@src,"http://www.vidi.hu/")]
@@ -268,7 +257,6 @@ youtubecontant: //object/embed[starts-with(@src,"http://www.youtube.com/v/")]
 @unsupported: //iframe[starts-with(@src,"//video.bigmir.net")]
 @unsupported: //iframe[starts-with(@src,"https://www.nhl.com/video/embed")]
 @unsupported: //iframe[starts-with(@src,"http://tv.dfb.de/playvid.php")]
-#@unsupported: //iframe[starts-with(@src,"//players.brightcove.net/")]
 
 
 # unsupported quiz articles, like https://sport.ua/news/398636-test-naskolko-horosho-vy-sledili-za-transferami-apl
@@ -282,9 +270,7 @@ youtubecontant: //object/embed[starts-with(@src,"http://www.youtube.com/v/")]
 @unsupported: //div[@class="playbuzz"]
 @unsupported: //iframe[@title="Apester - Interactive content"]
 @unsupported: //object
-#@remove: //object
-#@remove: //embed
-#@remove: //p/text()=" "
+
 @remove: //ul[has-class("social")]
 @remove: //div[has-class("sportua-bet-btn-wrap")]
 @remove: //a[contains(@href,"clickstats.online")]
